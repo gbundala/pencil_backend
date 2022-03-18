@@ -138,15 +138,10 @@ exports.createQuestion = function (req, res) {
 };
 
 /* 
-    2. Signing in a User.
+    2. GET QUESTIONS 
     ------------------------------------------------------------
 */
-
-/* 
-    6. Listing information for the Todos for the specific 
-    authenticated User
-    ------------------------------------------------------------
-*/
+// FIXME: BE SURE to explain why you have used a certain approach or schema. and also in the comments explain what the alternative would have been. Do this here or above in the architecture explanation. While explaining ensure you explain in terms of the impact on performance. for instance whether you use annotations: [ ] as an array or have each annotation as a field (e.g annotation1, annotation2 etc ) and and check the performance using .explain("executeStats") and compare the stats for both approaches -- this way you appear to be more methodical and scientific in your coding approach.
 
 // Retrieving all the information for all todos in the database
 exports.getQuestions = function (req, res) {
@@ -209,6 +204,8 @@ exports.getQuestions = function (req, res) {
         // #3. This goes along with #2b above: Ooh we actually
         // we could just spread the queriedTopics after $elemMatch
         // see this :{ annotations: {$elemMatch: {...queriedTopics}} } . Just revisit
+
+        // RERENCE ON INDEXES: https://www.digitalocean.com/community/tutorials/how-to-use-indexes-in-mongodb
 
         Question.find(
           { annotations: { $elemMatch: { topic } } },
