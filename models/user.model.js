@@ -1,5 +1,7 @@
 /**
  *
+ * TODO: REVIEW THIS ENTIRE FILE (NOT YET REVIEWED)
+ *
  * USER MODEL
  *
  *

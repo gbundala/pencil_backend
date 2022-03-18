@@ -1,6 +1,9 @@
 /**
  *
- * USER CONTROLLER
+ *  * TODO: REVIEW THIS ENTIRE FILE (NOT YET REVIEWED)
+
+ * 
+ * USER CONTROLLER 
  *
  * Here we define all the CRUD operations operations in the
  * callback functions that will be called when the route

@@ -7,7 +7,8 @@ const express = require("express");
 
 // Import environment variables for use in the MongoDB URL to
 // connect to the database. Where we need to enter the username
-// and password. npm: https://www.npmjs.com/package/dotenv
+// and password.
+// npm: https://www.npmjs.com/package/dotenv
 
 // The .env file is also included in the .gitignore file to
 // avoid the unauthorized access to the credentials
@@ -24,7 +25,7 @@ const apiRoutes = require("./routes");
 
 // Import mongoose to be used to connect to the MongoDB database
 // Mongoose is an abstraction over the MongoDB Drivers and the
-// boilerplate code to connect to MongoDB, hence a better DX.
+// boilerplate code to connect to MongoDB, hence better DX.
 const mongoose = require("mongoose");
 
 // EXPRESS APP INITIALIZATION
@@ -38,8 +39,8 @@ const app = express();
 // Calling helmet middleware which helps secure the App
 // by setting various HTTP headers
 
-// Included the unsafe-inline directive as part of the CSP policy to rectify
-// the error as per the message below.
+// Included the unsafe-inline directive as part of the CSP policy
+// to rectify the error as per the message below.
 // The useDefaults is set to 'true' hence all the defaults
 // remain the same except for directives option which
 // only overrides the "script-src" option
@@ -90,12 +91,12 @@ app.use(bodyParser.json());
  * the routes in the second argument. The first argument
  * defines the root route.
  *
- * This approach of using a single file is much lean and
+ * This approach of using a single file is much more lean and
  * scalable as it is easier to just add the routes in the
  * index.js file inside the routes directory (rather than
  * creating a separate file for each route)
- * The response here in stackoverflow provides a much better
- * response on this approaching of using the routes directory:
+ * The response here in stackoverflow provides a much clearer
+ * perspective on this approaching of using the routes directory:
  * https://stackoverflow.com/questions/6059246/how-to-include-route-handlers-in-multiple-files-in-express/37309212#37309212
  *
  */
@@ -106,7 +107,7 @@ app.use("/api", apiRoutes);
 // For general error handling inline with the gist below
 // We use the "*" wildcard to capture any errors
 // https://gist.github.com/zcaceres/2854ef613751563a3b506fabce4501fd#generalized-error-handling
-// Then we respond with the message if the use enters
+// Then we respond with the message if the user enters
 // a different route not specified here
 app.get("*", function (req, res, next) {
   let err = new Error();
@@ -144,22 +145,23 @@ app.listen(PORT, function () {
  * database and provide the feeback to the console when the
  * connection is successful or not
  *
- * The uri for connecting is available in from the Atlas, Connect
+ * The uri for connecting is available from MongoDB Atlas, Connect
  * option in the MongoDB app. The mongoose.connect() instruction
  * is used to connect to the database
  *
  *
  */
 
-// Plug out the custom variables from the .env file
+// We get the custom variables from the .env file
 // These are being used below in order to hide my
-// credential from access to any other person who
-// may have access to this code reposity. Hence for security
+// credentials from access to any other person who
+// may have access to this code reposity
+
 const { MONGODB_USERNAME } = process.env;
 const { MONGODB_PASSWORD } = process.env;
 
 // MONGOOSE CONNECTION
-const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@hyperion-dev-l3.0qthg.mongodb.net/TodoList?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@pencil-spaces.l0n3u.mongodb.net/PencilSpaces?retryWrites=true&w=majority`;
 mongoose.Promise = global.Promise;
 
 // NOTE: useMongoClient option is no longer necessary (and it
