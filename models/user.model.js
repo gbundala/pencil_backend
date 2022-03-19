@@ -60,11 +60,6 @@ let UserSchema = mongoose.Schema({
     required: false,
     default: false,
   },
-  todoList: {
-    type: mongoose.Schema.Types.Array,
-    required: false,
-    default: [],
-  },
 });
 
 // We create the User model by calling the model()

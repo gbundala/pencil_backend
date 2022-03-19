@@ -178,7 +178,9 @@ exports.createUser = function (req, res) {
       // Send the json object to include both the user and the jwt
       // token.
       // We only send the clean doc which excludes internal
-      // properties such as the password
+      // properties such as the password but includes all the
+      // necessary information that can be useful in the frontend
+      // development of the user interfaces and logic
       res.send({
         user: cleanDoc,
         token: authToken,

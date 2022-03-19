@@ -128,6 +128,7 @@ app.get("*", function (req, res, next) {
 // errors occuring the processes above
 app.use(function (err, req, res, next) {
   console.log(err.stack);
+
   res.status(500).send("Oops something is wrong!?!?");
 });
 

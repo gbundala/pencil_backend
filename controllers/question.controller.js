@@ -1,5 +1,5 @@
 /**
- *
+ * TODO: REVISIT THIS
  * QUESTION CONTROLLER
  *
  * Here we define all the CRUD operations operations in the
@@ -55,14 +55,18 @@
 
 // IMPORTS
 
-// Import the Todos model from the model file
+// Import the Question model from the model file
 const Question = require("../models/question.model");
+
+// Import the Topic model from the model file
+// The Topic model (constructor) is useful to call the findOne()
+// method that retrieves the Topic document that meets the
+// filter query for the value of the queryTopic from the
+// 'query string'
+const Topic = require("../models/topic.model");
 
 // Import the jsonwebtoken library
 const jwt = require("jsonwebtoken");
-
-// Import bcrypt to be used to hash passwords
-const bcrypt = require("bcrypt");
 
 // The 'dotenv' library has already been required/imported
 // in server.js and hence accessible here as well.
@@ -75,90 +79,145 @@ const { JWT_SECRET_KEY } = process.env;
 // CONTROLLERS
 
 /* 
-    1. Adding a new User to the users collection.
+    1. Adding a new Question to the questions collection.
     ------------------------------------------------------------
 */
 
-// Creating a new User in the database
+// Creating a new Question in the database
 exports.createQuestion = function (req, res) {
-  // Grab the new User object from the body
-  const newUser = req.body;
+  // Grab the question object from the body of the request
+  const newQuestion = req.body;
 
-  // Encrypt the password before storing it in the database
-  // using bcrypt hashing algo.
-  // We also define the salt rounds to be used in the hashSync
-  // bcrypt method below inline with the library documentation.
-  // The salt is basically the number of rounds to secure the hash
-  // which in essence is meant to enhance the unpredictability of
-  // the hash by including some random data that is used as input
-  // to the hashing method.
-  // Resource on bcrypt: https://sebhastian.com/bcrypt-node/
-  const saltRounds = 10;
-  const encryptedPassword = bcrypt.hashSync(newUser.password, saltRounds);
-
-  // Create and Save a new User using the UserModel constructor
-  // and passing in the Object received from the body of the
-  // request. Also specifying the password value to the encrypted
-  // version instead of the plain text one.
-  let userModel = new User({
-    ...newUser,
-    password: encryptedPassword,
-  });
-
-  // Calling the save method to create the new User
-  userModel.save(function (err, doc) {
-    if (err) {
-      console.log(err);
-      res.status(500).send({
-        message: "Oops! There is an error in adding the User to the database.",
-      });
-    } else {
-      console.log("Yay! New User has been added to database!!", doc);
-
-      // Generate the auth token using the method defined above
-      // by passing in the user doc into the method and calling it
-      const authToken = createUserAuthToken(doc);
-
-      // Clone the doc
-      let cleanDoc = { ...doc._doc };
-
-      // Delete the password prop
-      delete cleanDoc.password;
-
-      // Send the json object to include both the user and the jwt
-      // token.
-      // We only send the clean doc which excludes internal
-      // properties such as the password
-      res.send({
-        user: cleanDoc,
-        token: authToken,
-      });
-    }
-  });
-};
-
-/* 
-    2. GET QUESTIONS 
-    ------------------------------------------------------------
-*/
-// FIXME: BE SURE to explain why you have used a certain approach or schema. and also in the comments explain what the alternative would have been. Do this here or above in the architecture explanation. While explaining ensure you explain in terms of the impact on performance. for instance whether you use annotations: [ ] as an array or have each annotation as a field (e.g annotation1, annotation2 etc ) and and check the performance using .explain("executeStats") and compare the stats for both approaches -- this way you appear to be more methodical and scientific in your coding approach.
-
-// Retrieving all the information for all todos in the database
-exports.getQuestions = function (req, res) {
-  // TODO: Revisit on the id part for the user auth
-  // Grab the id of the User
-  const id = req.params.id;
-
-  //   Grab the 'name of topic' from the params
-  const queryTopic = req.params.q;
-
-  // TODO: update on this part
   // Grab the auth from the header and get the token
   const authHeader = req.headers["authorization"];
   const authToken = authHeader.split(" ")[1];
 
   // Calling the jwt.verify method to verify the Identity of
   // Authenticated user by verifying the authToken
+
+  jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
+    if (err) {
+      console.log(err);
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else {
+      // TODO: REVIEW THE NEED FOR THIS STEP, SEE THE INSERTMANY BELOW THIS - IT IS RELEVANT AS THERE IS NO SAVE METHOD DIRECTLY ON THE MODEL. BUT IT SEEMS THERE IS THE INSERTMANY METHOD THERE DIRECTLY -- JUST RECONFIRM THIS IN THE DOCS
+
+      // Create and Save a new Question using the QuestionModel
+      // constructor and passing in the Object received from the
+      // body of the request.
+      let questionModel = new Question({
+        ...newQuestion,
+      });
+
+      // Call the save method to create a new question
+      questionModel.save(function (err, questionDoc) {
+        if (err) {
+          console.log(err);
+          res.status(500).send({
+            message:
+              "Oops! There is an error in adding the Question to the database",
+          });
+        } else {
+          console.log(
+            "Yay! New Question has been added to database!",
+            questionDoc
+          );
+          // Send back the Question document
+          res.send(questionDoc);
+        }
+      });
+    }
+  });
+};
+
+/* 
+    2. Adding a Multiple New Question to the questions collection.
+    ------------------------------------------------------------
+*/
+
+// Creating Multiple Questions in the database at once
+exports.createMultipleQuestions = function (req, res) {
+  // Grab the questions Array from the body of the request
+  const newQuestionsArray = req.body;
+
+  // Grab the auth from the header and get the token
+  const authHeader = req.headers["authorization"];
+  const authToken = authHeader.split(" ")[1];
+
+  // Calling the jwt.verify method to verify the Identity of
+  // Authenticated user by verifying the authToken
+
+  jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
+    if (err) {
+      console.log(err);
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else {
+      // Create and Save a new Questions using the QuestionModel
+      // constructor imported and passing in the Array of Objects
+      // received from the body of the request.
+
+      // Call the insertMany() method from the contructor
+
+      Question.insertMany(newQuestionsArray, function (err, questionDocs) {
+        if (err) {
+          console.log(err);
+          res.status(500).send({
+            message:
+              "Oops! There is an error in adding multiple Questions to the database",
+          });
+        } else {
+          console.log(
+            "Yay! Array of New Questions added to database!",
+            questionDocs
+          );
+          // Send back the Question documents inserted
+          res.send(questionDocs);
+        }
+      });
+    }
+  });
+};
+
+/* 
+    3. GET QUESTIONS 
+    ------------------------------------------------------------
+*/
+// FIXME: BE SURE to explain why you have used a certain approach or schema. and also in the comments explain what the alternative would have been. Do this here or above in the architecture explanation. While explaining ensure you explain in terms of the impact on performance. for instance whether you use annotations: [ ] as an array or have each annotation as a field (e.g annotation1, annotation2 etc ) and and check the performance using .explain("executeStats") and compare the stats for both approaches -- this way you appear to be more methodical and scientific in your coding approach.
+
+// Retrieving all the information for all todos in the database
+exports.getQuestions = function (req, res) {
+  //   Grab the 'name of topic' from the query string
+  const queryTopic = req.query.q;
+  // FIXME: DELETE AND SEE IF TO ADD A TRIM OR TOSTRING() ON THE ABOVE QUERY TOPIC GRABBED FROM THE URL QUERY STRING
+  console.log("QUERY TOPIC", queryTopic);
+
+  // Grab the auth from the header and get the token
+  const authHeader = req.headers["authorization"];
+  const authToken = authHeader.split(" ")[1];
+
+  // Calling the jwt.verify method to verify the Identity of
+  // Authenticated user by verifying the authToken
+
+  // Hint: We define the callback function to an async function
+  // in order to be able to user the 'await' keyword inside it
+  // We want to ensure that the query in the 'topics' collection
+  // finishes running before the next line of code is executed
+  // because it relies on the results from the query in the
+  // 'topics' collection.
+  // If we don't await then we may get bugs as a result of
+  // a race condition or execution of code without the respective
+  // data or array for this instance (e.g. error: "when you
+  // call an array method on a variable that does not yet
+  // contain an array").
+  // e.g. TypeError: querySubTopics is not iterable
   jwt.verify(authToken, JWT_SECRET_KEY, async function (err, user) {
     if (err) {
       console.log(err);
@@ -173,7 +232,24 @@ exports.getQuestions = function (req, res) {
 
       // Get the array of topics and sub-topics that fall
       // under the 'queryTopic'
-      const queriedTopics = await Topic.find().exec();
+
+      // TODO: SEE HOW and WHERE to handle the situation whether the queryTopic entered by the user is not in our database or is incorrect
+
+      const querySubTopicsDoc = await Topic.findOne({
+        topicName: queryTopic,
+      }).exec();
+
+      // Grab the array in the doc from the 'subTopics' field
+      const querySubTopics = querySubTopicsDoc.subTopics;
+
+      // FIXME: DELETE LOGS
+      console.log("QUERY SUBTOPICS DOCUMENT", querySubTopicsDoc);
+      console.log("QUERY SUBTOPICS ARRAY", querySubTopics);
+
+      // const querySubTopics = [
+      //   "Homeostasis",
+      //   "Define homeostasis as the maintenance of a constant internal environment",
+      // ];
 
       //   FIXME: delete this is depends on the flipping on head approach
       //  Get the array of Annotations to map through them
@@ -184,45 +260,78 @@ exports.getQuestions = function (req, res) {
       // retrieved, find the question object that has this topic
       // or sub-topic as part of its annotations
 
-      queriedTopics.forEach((topic) => {
-        // Call the findById mongoose/MongoDB method
+      // The query filter below is inline with the documentation
+      // regarding any element of the array field 'annotations'
+      // satisfies any elements of the 'queriedTopics':
+      // https://docs.mongodb.com/manual/tutorial/query-arrays/#query-an-array-with-compound-filter-conditions-on-the-array-elements
 
-        // TODO: Now see on how to incorporate index on the below
+      // The `$in` operator has been useful here to check whether
+      // any of the elements in the annotations array field
+      // equals to any of the elements in the querySubTopics array
+      // along with the 'queryTopic' itself.
+      // So we check if any elements in one array is equal to any
+      // element in the other array, then we retrieve that
+      // document (Quite interesting!)
+      // https://docs.mongodb.com/manual/reference/operator/query/in/#use-the--in-operator-to-match-values-in-an-array
+      Question.find(
+        { annotations: { $in: [queryTopic, ...querySubTopics] } }
+        // function (err, questionDoc) {
+        //   if (err) {
+        //     console.log(err);
+        //     res.status(500).send({
+        //       message:
+        //         "Oops! There is an error in retrieving the Question document from the database",
+        //     });
+        //   } else {
+        //     // Response: Send back the just the question number
+        //     // as per the task requirement
 
-        // FIXME: Note; I have two options here
+        //     const filteredDoc = [];
 
-        // 1. I use object properties (annotation1, annotation2, .
-        // ..etc) instead of an array and then follow the approach below
-        // { <field1>: <value>, <field2>: <value> ... }
-        // Reference: https://docs.mongodb.com/manual/reference/method/db.collection.find/
+        //     for (let i = 0; i < questionDoc.length; i++) {
+        //       const questionName = questionDoc[i].question;
+        //       console.log(questionName);
+        //       filteredDoc.push(questionName);
+        //     }
 
-        // 2a. I keep the array of annotations in the Questions document and use  "arrayField.$" : 1" . Refer to the ame link above for details
+        //     console.log("RETURNED BACK ARRAY", filteredDoc);
 
-        // 2b. Or actually use the $elementMatch keyword
-        // https://docs.mongodb.com/manual/reference/operator/query/elemMatch/
+        //     // FIXME: See how you can just send back an array of the 'question' fields only!! DONE ABOVE!!
 
-        // #3. This goes along with #2b above: Ooh we actually
-        // we could just spread the queriedTopics after $elemMatch
-        // see this :{ annotations: {$elemMatch: {...queriedTopics}} } . Just revisit
+        //     // Requirement: The response to this query, should be
+        //     // an array of question numbers, that match the
+        //     // following requirement.
 
-        // RERENCE ON INDEXES: https://www.digitalocean.com/community/tutorials/how-to-use-indexes-in-mongodb
+        //     // TODO: Update what we send to be the filteredDoc (change its name though)
+        //     res.send(questionDoc);
+        //   }
+        // }
+      )
 
-        Question.find(
-          { annotations: { $elemMatch: { topic } } },
-          function (err, userDoc) {
-            if (err) {
-              console.log(err);
-              res.status(500).send({
-                message:
-                  "Oops! There is an error in retrieving the User todos from the database",
-              });
-            } else {
-              // Send back the just the todoList
-              res.send(userDoc.todoList);
-            }
-          }
-        );
-      });
+        // TODO: The below is key for documentation in README screenshot the terminal after running it with all the data and put in readme. Then delete the below (or leave it - depends - jsut see the relevance of leaving it or if it affects anything)
+        .explain("executionStats")
+        .then((res) => {
+          console.log("RESPONSE INSIDE EXPLAIN CHAIN", res);
+          return res[0];
+        });
+
+      // FIXME: VISIT THE BELOW AND DELETE
+      // queriedTopics.forEach((topic) => {
+      //   // Call the findById mongoose/MongoDB method
+      //   // TODO: Now see on how to incorporate index on the below
+      //   // FIXME: Note; I have two options here
+      //   // 1. I use object properties (annotation1, annotation2, .
+      //   // ..etc) instead of an array and then follow the approach below
+      //   // { <field1>: <value>, <field2>: <value> ... }
+      //   // Reference: https://docs.mongodb.com/manual/reference/method/db.collection.find/
+      //   // 2a. I keep the array of annotations in the Questions document and use  "arrayField.$" : 1" . Refer to the ame link above for details
+      //   // 2b. Or actually use the $elementMatch keyword
+      //   // https://docs.mongodb.com/manual/reference/operator/query/elemMatch/
+      //   // #3. This goes along with #2b above: Ooh we actually
+      //   // we could just spread the queriedTopics after $elemMatch
+      //   // see this :{ annotations: {$elemMatch: {...queriedTopics}} } . Just revisit
+      //   // RERENCE ON INDEXES: https://www.digitalocean.com/community/tutorials/how-to-use-indexes-in-mongodb
+      // });
     }
   });
 };
