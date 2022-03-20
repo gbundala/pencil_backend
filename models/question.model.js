@@ -61,14 +61,12 @@ const mongoose = require("mongoose");
 // FIXME: also check if the below trim and lowercase methods that are mainly for strings can also apply here where the string is in the array
 
 let QuestionSchema = mongoose.Schema({
-  question: {
-    type: String,
+  questionNumber: {
+    type: Number,
     required: true,
   },
   annotations: {
     type: [String],
-    trim: true,
-    lowercase: true,
     required: true,
     index: true,
   },
