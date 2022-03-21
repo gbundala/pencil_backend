@@ -39,6 +39,11 @@ apiRouter.get("/search", question.getQuestions);
 // create a question can create a topic in the database
 apiRouter.post("/addTopic", topic.createTopic);
 
+// 2. POST Request to add Multiple new Topics in the database
+// Only authenticated users with the isAdmin flag can add
+// questions to the database
+apiRouter.post("/addManyTopics", topic.createMultipleTopics);
+
 // USER ROUTERS
 
 // 1. POST Request to add a new User to the Users collection

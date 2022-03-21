@@ -42,6 +42,7 @@ const Topic = require("../models/topic.model");
 
 // Import the jsonwebtoken library
 const jwt = require("jsonwebtoken");
+const topicsArray = require("./utils/topicsArray");
 
 // The 'dotenv' library has already been required/imported
 // in server.js and hence accessible here as well.
@@ -105,14 +106,22 @@ exports.createTopic = function (req, res) {
 };
 
 /* 
-    2. Adding a Multiple New Question to the questions collection.
+    2. Adding a Multiple New Topics to the topics collection.
     ------------------------------------------------------------
 */
 
 // Creating Multiple Questions in the database at once
-exports.createMultipleQuestions = function (req, res) {
+exports.createMultipleTopics = async function (req, res) {
+  // FIXME: REVISIT BELOW
+  // JUST RETURN THIS AND COMMENT OUT THE CODE FOR THE GOOGLE SHEET CALL AS THAT WON'T BE NEEDED CONTINUOSLY ITS A ONE TIME BUT KEEP THE UTIL CODE AS IT SHOWS WHAT I HAVE DONE
   // Grab the questions Array from the body of the request
-  const newQuestionsArray = req.body;
+  // const newQuestionsArray = req.body;
+
+  // Call the method to retrieve the topics from the
+  // google sheet
+  const newTopicsArray = await topicsArray();
+
+  console.log("NEW TOPICS ARRAY", newTopicsArray);
 
   // Grab the auth from the header and get the token
   const authHeader = req.headers["authorization"];
@@ -130,26 +139,25 @@ exports.createMultipleQuestions = function (req, res) {
           "You don't have permission to perform this action. Login with the correct username & password",
       });
     } else {
-      // Create and Save a new Questions using the QuestionModel
+      // Create and Save a new Topics using the TopicModel
       // constructor imported and passing in the Array of Objects
       // received from the body of the request.
 
       // Call the insertMany() method from the contructor
 
-      Question.insertMany(newQuestionsArray, function (err, questionDocs) {
+      console.log("WERE IN!!!!!!!");
+
+      Topic.insertMany(newTopicsArray, function (err, topicDocs) {
         if (err) {
           console.log(err);
           res.status(500).send({
             message:
-              "Oops! There is an error in adding multiple Questions to the database",
+              "Oops! There is an error in adding multiple Topics to the database",
           });
         } else {
-          console.log(
-            "Yay! Array of New Questions added to database!",
-            questionDocs
-          );
+          console.log("Yay! Array of New Topics added to database!", topicDocs);
           // Send back the Question documents inserted
-          res.send(questionDocs);
+          res.send(topicDocs);
         }
       });
     }
