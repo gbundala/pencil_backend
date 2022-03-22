@@ -31,9 +31,17 @@ const mongoose = require("mongoose");
 // of the User model below
 
 // The isAdmin user designation is used to define whether a user
-// has admin priviledges which is however not so much useful to
-// the current simple nature of our application but maybe userful
-// later when we further develop our app to be much more complex
+// has admin priviledges which in our case in the current simple
+// nature of the application, the only the admin has the right
+// to create new questions and topics into the database.
+
+// Also included other designations in the schema: isTutor,
+// isSchoolTeacher, isStudent in order to provide for different
+// roles and access depending on the designation. This is however
+// not so much relevant in the current task, however it is
+// appreciated that this sort of designition for the user objects
+// would be really useful to the fully fledged
+// production application
 let UserSchema = mongoose.Schema({
   username: {
     type: String,
@@ -56,6 +64,21 @@ let UserSchema = mongoose.Schema({
     required: true,
   },
   isAdmin: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isTutor: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isSchoolTeacher: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isStudent: {
     type: Boolean,
     required: false,
     default: false,

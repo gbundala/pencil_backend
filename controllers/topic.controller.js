@@ -79,6 +79,12 @@ exports.createTopic = function (req, res) {
         message:
           "You don't have permission to perform this action. Login with the correct username & password",
       });
+    } else if (!user.isAdmin) {
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
+      });
     } else {
       // Create and Save a new Topic using the TopicModel
       // constructor and passing in the Object received from the
@@ -137,6 +143,12 @@ exports.createMultipleTopics = async function (req, res) {
         error: true,
         message:
           "You don't have permission to perform this action. Login with the correct username & password",
+      });
+    } else if (!user.isAdmin) {
+      res.status(401).send({
+        error: true,
+        message:
+          "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
       });
     } else {
       // Create and Save a new Topics using the TopicModel
