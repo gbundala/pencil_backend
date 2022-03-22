@@ -70,6 +70,7 @@
  *
  * TODO: Add details below and include this in the question model
  * as well
+ * TODO: Speak of the index prop added to topicName below
  *
  * INDEXES
  * Added index to the topicName to enhance the efficiency of the
