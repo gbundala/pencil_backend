@@ -350,14 +350,14 @@ exports.getQuestions = function (req, res) {
               res.send(questionNumbers);
             }
           }
-        )
+        );
 
-          // TODO: The below is key for documentation in README screenshot the terminal after running it with all the data and put in readme. Then delete the below (or leave it - depends - jsut see the relevance of leaving it or if it affects anything)
-          .explain("executionStats")
-          .then((res) => {
-            console.log("RESPONSE INSIDE EXPLAIN CHAIN", res);
-            return res[0];
-          });
+        // TODO: The below is key for documentation in README screenshot the terminal after running it with all the data and put in readme. Then delete the below (or leave it - depends - jsut see the relevance of leaving it or if it affects anything)
+        // .explain("executionStats")
+        // .then((res) => {
+        //   console.log("RESPONSE INSIDE EXPLAIN CHAIN", res);
+        //   return res[0];
+        // });
 
         // FIXME: VISIT THE BELOW AND DELETE
         // queriedTopics.forEach((topic) => {
