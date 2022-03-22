@@ -75,7 +75,10 @@ const jwt = require("jsonwebtoken");
 // Hint: The usecase is here is only one-time
 // in a normal use cases for a production
 // application we would be getting the data
-// from the body of the request
+// from the body of the request, hence the respective
+// code for pulling the google sheet data has been
+// commented out after invoking it once.
+
 // More details below.
 
 const questionsArrayFromGoogleSheet = require("./utils/questionsArray");
@@ -85,8 +88,6 @@ const questionsArrayFromGoogleSheet = require("./utils/questionsArray");
 // We grab the jwt secret key from the custom environment
 // variable to be used in the jwt signing method below
 const { JWT_SECRET_KEY } = process.env;
-
-// UTILS
 
 // CONTROLLERS
 
@@ -122,8 +123,6 @@ exports.createQuestion = function (req, res) {
           "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
       });
     } else {
-      // TODO: REVIEW THE NEED FOR THIS STEP, SEE THE INSERTMANY BELOW THIS - IT IS RELEVANT AS THERE IS NO SAVE METHOD DIRECTLY ON THE MODEL. BUT IT SEEMS THERE IS THE INSERTMANY METHOD THERE DIRECTLY -- JUST RECONFIRM THIS IN THE DOCS
-
       // Create and Save a new Question using the QuestionModel
       // constructor and passing in the Object received from the
       // body of the request.
@@ -153,7 +152,7 @@ exports.createQuestion = function (req, res) {
 };
 
 /* 
-    2. Adding a Multiple New Question to the questions collection.
+    2. Adding Multiple New Question to the questions collection.
     ------------------------------------------------------------
 */
 
@@ -166,21 +165,32 @@ exports.createMultipleQuestions = async function (req, res) {
   try {
     // Grab the questions Array from the body of the request
     const newQuestionsArray = req.body;
-    console.log("From the Body of Request", newQuestionsArray);
 
-    // IMPORTANT NOTE:
+    /**
+     *
+     * IMPORTANT NOTE:
+     *
+     **/
+
     // The below method has only been invoked once
-    // to push the values from the Google Sheet into the
-    // database. It can be used for any future request that
-    // needs to pull data from the database however in
+    // to pull the values from the Google Sheet and push to
+    // thedatabase. It can be used for any future request that
+    // needs to pull data from a Google Sheet however in
     // normal instances we expect data to come from the
-    // body of the request from the fronend as we grab
-    // it above in the 'newQuestionsArray' variable
+    // body of the request from the frontend as we grab
+    // it above in the 'newQuestionsArray' variable from the
+    // body of the request
+
+    // The code below is therefore commented out to avoid
+    // duplicating the process of adding the 199 questions
+    // again into MongoDB database
 
     // Grab the questionsArray from the utils function
     // that returns the array of questions from the Task
     // Google Sheet
-    const gsheetQuestionsArray = await questionsArrayFromGoogleSheet();
+
+    // CODE:
+    // const gsheetQuestionsArray = await questionsArrayFromGoogleSheet();
 
     // Grab the auth from the header and get the token
     const authHeader = req.headers["authorization"];
@@ -188,6 +198,10 @@ exports.createMultipleQuestions = async function (req, res) {
 
     // Calling the jwt.verify method to verify the Identity of
     // Authenticated user by verifying the authToken
+
+    // We then check whether the user is an Admin and only
+    // honor the request if the user is an admin, otherwise
+    // we send back the 'Unauthorized Error 401'
 
     jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
       if (err) {
@@ -204,13 +218,13 @@ exports.createMultipleQuestions = async function (req, res) {
             "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
         });
       } else {
-        // Create and Save a new Questions using the QuestionModel
-        // constructor imported and passing in the Array of Objects
-        // received from the body of the request.
+        // Create and Save new Questions using the QuestionModel
+        // constructor imported and passing in the Array of
+        // Objects received from the body of the request.
 
         // Call the insertMany() method from the contructor
 
-        Question.insertMany(gsheetQuestionsArray, function (err, questionDocs) {
+        Question.insertMany(newQuestionsArray, function (err, questionDocs) {
           if (err) {
             console.log(err);
             res.status(500).send({
@@ -237,21 +251,23 @@ exports.createMultipleQuestions = async function (req, res) {
 };
 
 /* 
-    3. GET QUESTIONS 
+    3. GET Request to access the list/array of question numbers
+    // that match search requirement 
     ------------------------------------------------------------
 */
-// FIXME: BE SURE to explain why you have used a certain approach or schema. and also in the comments explain what the alternative would have been. Do this here or above in the architecture explanation. While explaining ensure you explain in terms of the impact on performance. for instance whether you use annotations: [ ] as an array or have each annotation as a field (e.g annotation1, annotation2 etc ) and and check the performance using .explain("executeStats") and compare the stats for both approaches -- this way you appear to be more methodical and scientific in your coding approach.
 
 // Retrieving all the information for all todos in the database
 exports.getQuestions = function (req, res) {
-  //   Grab the 'name of topic' from the query string
-  // FIXME: Trim and toString the queryTopic before invoking the search below
+  // Grab the 'name of topic' from the query string
+  // Trim and toString the queryTopic before invoking the search
+  // below. We ensure that the filter works even if there are
+  // leading and trailing spaces in the query string
 
   const queryTopic = req.query.q.toString().trim();
-  // FIXME: DELETE AND SEE IF TO ADD A TRIM OR TOSTRING() ON THE ABOVE QUERY TOPIC GRABBED FROM THE URL QUERY STRING
-  console.log("QUERY TOPIC", queryTopic);
 
   // Grab the auth from the header and get the token
+  // We only want authenticated user to successfully make
+  // the query and get the list of questions
   const authHeader = req.headers["authorization"];
   const authToken = authHeader.split(" ")[1];
 
@@ -259,7 +275,7 @@ exports.getQuestions = function (req, res) {
   // Authenticated user by verifying the authToken
 
   // Hint: We define the callback function to an async function
-  // in order to be able to user the 'await' keyword inside it
+  // in order to be able to use the 'await' keyword inside it
   // We want to ensure that the query in the 'topics' collection
   // finishes running before the next line of code is executed
   // because it relies on the results from the query in the
@@ -284,98 +300,134 @@ exports.getQuestions = function (req, res) {
             "You don't have permission to perform this action. Login with the correct username & password",
         });
       } else {
-        // TODO: I have just flipped the logic on its head
-        // just review and confirm [it hasnt work -- revert back]
-
         // Get the array of topics and sub-topics that fall
         // under the 'queryTopic'
 
-        // TODO: SEE HOW and WHERE to handle the situation whether the queryTopic entered by the user is not in our database or is incorrect
+        // KEY: The following  point below is IMPORTANT to the
+        // REQUIREMENT 4 of the task:
+
+        // Due to the design of the database and schema,
+        // all topics are stored in documents, hence this
+        // makes any query to any topic regardless of where
+        // it is in the topics tree to be very efficient.
+        // Further the 'topicName' field is indexed to enhance
+        // the efficieny and speed of the query.
+        // Therefore whether the topic is at the root or at the
+        // end of the topics tree the query would use the same
+        // amount of time (other factors being constant) and it
+        // would make the same number of searches to get to the
+        // document.
+
+        // Once the topicName document is found in the database,
+        // it returns the document and grab the array of sub
+        // topics by accessing the subTopics field
 
         const querySubTopicsDoc = await Topic.findOne({
           topicName: queryTopic,
         }).exec();
 
-        // Grab the array in the doc from the 'subTopics' field
-        const querySubTopics = querySubTopicsDoc.subTopics;
+        // If the 'name of topic' is not found or the user has
+        // erroneously entered a wrong topic that is not in the
+        // database we respond by sending a 404 error response to
+        // the user to notify them to recheck the query string
+        // and try again.
+        // This will enhance the user experience as the user
+        // is directed to know what is problem while maintaining
+        // the security of our application and server.
+        // Also sending a 404 error provide better/ more accurate
+        // information to the user rather than a generic 500 error
+        // code response. Hence the better UX
 
-        // FIXME: DELETE LOGS
-        console.log("QUERY SUBTOPICS DOCUMENT", querySubTopicsDoc);
-        console.log("QUERY SUBTOPICS ARRAY", querySubTopics);
+        if (!querySubTopicsDoc) {
+          console.log("Error 404: The topic name is not found in the database");
 
-        //   FIXME: delete this is depends on the flipping on head approach
-        //  Get the array of Annotations to map through them
-        // const annotations
+          res.status(404).send({
+            error: true,
+            message:
+              "The name of topic you have searched is not found, please check if it is correct and try again!",
+          });
+        } else {
+          // Grab the array in the doc from the 'subTopics' field
+          const querySubTopics = querySubTopicsDoc.subTopics;
 
-        // map through the queriedTopics retrieved from the topics
-        // collection and for each of the topics and sub-topics
-        // retrieved, find the question object that has this topic
-        // or sub-topic as part of its annotations
+          //  Query Filter
 
-        // The query filter below is inline with the documentation
-        // regarding any element of the array field 'annotations'
-        // satisfies any elements of the 'queriedTopics':
-        // https://docs.mongodb.com/manual/tutorial/query-arrays/#query-an-array-with-compound-filter-conditions-on-the-array-elements
+          // We include both the queryTopic and the spread the
+          // elements of the querySubTopics array in the filter.
+          // This way MongoDB searches through the for the
+          // annotations field and returns the 'question' document
+          // if any element in the annotations array matches any
+          // element in the query.
+          // We have indexed the 'annotations' field which
+          // enhances further the query process.
 
-        // The `$in` operator has been useful here to check whether
-        // any of the elements in the annotations array field
-        // equals to any of the elements in the querySubTopics array
-        // along with the 'queryTopic' itself.
-        // So we check if any elements in one array is equal to any
-        // element in the other array, then we retrieve that
-        // document (Quite interesting!)
-        // https://docs.mongodb.com/manual/reference/operator/query/in/#use-the--in-operator-to-match-values-in-an-array
-        Question.find(
-          { annotations: { $in: [queryTopic, ...querySubTopics] } },
-          function (err, questionDocs) {
-            if (err) {
-              console.log(err);
-              res.status(500).send({
-                message:
-                  "Oops! There is an error in retrieving the Question document from the database",
-              });
-            } else {
-              // Response: Send back the just the question number
-              // as per the task requirement
-              const questionNumbers = questionDocs.map((doc) => {
-                return doc.questionNumber;
-              });
-              console.log("RETURNED BACK ARRAY", questionNumbers);
-              console.log("RETURNED BACK NUMBERS", questionDocs);
-              // FIXME: See how you can just send back an array of the 'question' fields only!! DONE ABOVE!!
-              // Requirement: The response to this query, should be
-              // an array of question numbers, that match the
-              // following requirement.
-              // TODO: Update what we send to be the filteredDoc (change its name though)
-              res.send(questionNumbers);
+          // The query filter below is inline with the
+          // documentation regarding any element of the array
+          // field 'annotations' satisfies any elements of the
+          // 'queriedTopics':
+
+          // https://docs.mongodb.com/manual/tutorial/query-arrays/#query-an-array-with-compound-filter-conditions-on-the-array-elements
+
+          // The `$in` operator has been useful here to check
+          // whether any of the elements in the annotations array
+          // field equals to any of the elements in the
+          // querySubTopics array along with the 'queryTopic'
+          // itself.
+
+          // So we check if any elements in one array is equal to
+          // any element in the other array, then we retrieve that
+          // document (Quite interesting!)
+
+          // https://docs.mongodb.com/manual/reference/operator/query/in/#use-the--in-operator-to-match-values-in-an-array
+          Question.find(
+            { annotations: { $in: [queryTopic, ...querySubTopics] } },
+            function (err, questionDocs) {
+              if (err) {
+                console.log(err);
+                res.status(500).send({
+                  error: true,
+                  message:
+                    "Oops! There is an error in retrieving the Question document from the database",
+                });
+              } else {
+                // Response: Send back the just the question
+                // number as per the task requirement
+                // We map through the array of docs and return
+                // a new array 'questionNumbers' that only
+                // contains the numbers
+                const questionNumbers = questionDocs.map((doc) => {
+                  return doc.questionNumber;
+                });
+
+                //  KEY: As per REQUIREMENT 3 of the task, we send
+                // back the array of question numbers
+                res.send(questionNumbers);
+              }
             }
-          }
-        );
+          );
 
-        // TODO: The below is key for documentation in README screenshot the terminal after running it with all the data and put in readme. Then delete the below (or leave it - depends - jsut see the relevance of leaving it or if it affects anything)
-        // .explain("executionStats")
-        // .then((res) => {
-        //   console.log("RESPONSE INSIDE EXPLAIN CHAIN", res);
-        //   return res[0];
-        // });
+          // TESTING FOR SPEED OF EXECUTION WITH INDEXES
 
-        // FIXME: VISIT THE BELOW AND DELETE
-        // queriedTopics.forEach((topic) => {
-        //   // Call the findById mongoose/MongoDB method
-        //   // TODO: Now see on how to incorporate index on the below
-        //   // FIXME: Note; I have two options here
-        //   // 1. I use object properties (annotation1, annotation2, .
-        //   // ..etc) instead of an array and then follow the approach below
-        //   // { <field1>: <value>, <field2>: <value> ... }
-        //   // Reference: https://docs.mongodb.com/manual/reference/method/db.collection.find/
-        //   // 2a. I keep the array of annotations in the Questions document and use  "arrayField.$" : 1" . Refer to the ame link above for details
-        //   // 2b. Or actually use the $elementMatch keyword
-        //   // https://docs.mongodb.com/manual/reference/operator/query/elemMatch/
-        //   // #3. This goes along with #2b above: Ooh we actually
-        //   // we could just spread the queriedTopics after $elemMatch
-        //   // see this :{ annotations: {$elemMatch: {...queriedTopics}} } . Just revisit
-        //   // RERENCE ON INDEXES: https://www.digitalocean.com/community/tutorials/how-to-use-indexes-in-mongodb
-        // });
+          // The code below is commented out but kept here
+          // as it is useful in testing for the impact of
+          // indexes in the questions and topics collection
+          // to the speed of the search and efficiency of the
+          // queries to the database.
+
+          // Further details on this in the README documentation
+          // however a key highlight is that it was noted that
+          // only 5 documents were examined when we introduced
+          // indexes to the question objects as oppossed to
+          // a collection scan of the entire set of 199 questions
+          // when searching without the use of indexes
+
+          // TESTING CODE:
+          // .explain("executionStats")
+          // .then((res) => {
+          //   console.log("RESPONSE INSIDE EXPLAIN CHAIN", res);
+          //   return res[0];
+          // });
+        }
       }
     } catch (err) {
       console.error("Error in Retrieving Data: ", err);

@@ -52,19 +52,7 @@ apiRouter.post("/signup", user.createUser);
 // 2. POST Request to signin a User
 apiRouter.post("/signin", user.userSignIn);
 
-// 3. PUT Request to Update a User document with the
-// updated todoList array after adding new todoItem
-apiRouter.put("/addTodoItem", user.addNewTodoItem);
-
-// 4. PUT Request to Update a User document with the updated
-// todoList array after deleting a todoItem
-apiRouter.put("/deleteTodoItem", user.deleteTodoItem);
-
-// 5. PUT Request to Update a User document with the updated
-// todoList array after editing a todoItem
-apiRouter.put("/editTodoItem", user.editTodoItem);
-
-// 7. GET Request to verify the authToken and refresh it
+// 3. GET Request to verify the authToken and refresh it
 // when the Browser/client is refreshed
 apiRouter.post("/refresh", user.refreshToken);
 
