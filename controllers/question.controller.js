@@ -326,31 +326,30 @@ exports.getQuestions = function (req, res) {
         // document (Quite interesting!)
         // https://docs.mongodb.com/manual/reference/operator/query/in/#use-the--in-operator-to-match-values-in-an-array
         Question.find(
-          { annotations: { $in: [queryTopic, ...querySubTopics] } }
-          // function (err, questionDocs) {
-          //   if (err) {
-          //     console.log(err);
-          //     res.status(500).send({
-          //       message:
-          //         "Oops! There is an error in retrieving the Question document from the database",
-          //     });
-          //   } else {
-
-          // Response: Send back the just the question number
-          // as per the task requirement
-          // const questionNumbers = questionDocs.map((doc) => {
-          //   return doc.questionNumber;
-          // });
-          // console.log("RETURNED BACK ARRAY", questionNumbers);
-          // console.log("RETURNED BACK NUMBERS", questionDocs);
-          // // FIXME: See how you can just send back an array of the 'question' fields only!! DONE ABOVE!!
-          // // Requirement: The response to this query, should be
-          // // an array of question numbers, that match the
-          // // following requirement.
-          // // TODO: Update what we send to be the filteredDoc (change its name though)
-          // res.send(questionNumbers);
-          // }
-          // }
+          { annotations: { $in: [queryTopic, ...querySubTopics] } },
+          function (err, questionDocs) {
+            if (err) {
+              console.log(err);
+              res.status(500).send({
+                message:
+                  "Oops! There is an error in retrieving the Question document from the database",
+              });
+            } else {
+              // Response: Send back the just the question number
+              // as per the task requirement
+              const questionNumbers = questionDocs.map((doc) => {
+                return doc.questionNumber;
+              });
+              console.log("RETURNED BACK ARRAY", questionNumbers);
+              console.log("RETURNED BACK NUMBERS", questionDocs);
+              // FIXME: See how you can just send back an array of the 'question' fields only!! DONE ABOVE!!
+              // Requirement: The response to this query, should be
+              // an array of question numbers, that match the
+              // following requirement.
+              // TODO: Update what we send to be the filteredDoc (change its name though)
+              res.send(questionNumbers);
+            }
+          }
         )
 
           // TODO: The below is key for documentation in README screenshot the terminal after running it with all the data and put in readme. Then delete the below (or leave it - depends - jsut see the relevance of leaving it or if it affects anything)
