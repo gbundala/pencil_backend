@@ -110,7 +110,7 @@ let TopicSchema = mongoose.Schema({
     default: "N/A",
   },
   subTopics: {
-    type: Array,
+    type: [String],
     required: false,
     default: [],
   },

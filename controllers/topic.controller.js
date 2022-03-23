@@ -4,7 +4,10 @@
  *
  * TOPIC CONTROLLER
  *
- * Here we define all the CRUD operations operations in the
+ * Refer to the questions.controller for the overral architecture
+ * for the project. Essencially it is an MVC architecture.
+ *
+ * Here we define all the CRUD operations in the
  * callback functions that will be called when the route
  * end-points are hit by a request.
  *
@@ -23,6 +26,18 @@
  * file for details on the design of the database and schema
  * architecture.
  *
+ * In terms of the overral structure of the 'topics' collection
+ * each topic has a separate document which provides advantage
+ * in terms of efficiency in the query as we optimise for data
+ * retrieval than storage and insertion as we expect there to
+ * be more data retrieval operations that insertion hence a
+ * fair evaluation. Hence despite there being increased cost
+ * in terms of storage space with this kind of architecture
+ * the benefit more than compensates for the cost.
+ *
+ * Further details on the structure of each of the documents
+ * and the schema in the topic.model.js file
+ *
  *
  *
  *
@@ -30,18 +45,21 @@
 
 // IMPORTS
 
-// Import the Question model from the model file
-const Question = require("../models/question.model");
-
 // Import the Topic model from the model file
-// The Topic model (constructor) is useful to call the findOne()
-// method that retrieves the Topic document that meets the
-// filter query for the value of the queryTopic from the
-// 'query string'
 const Topic = require("../models/topic.model");
 
 // Import the jsonwebtoken library
 const jwt = require("jsonwebtoken");
+
+// Import the topicsArray utility method that is used to
+// pull the data from Google Sheet and convert it into JSON
+// in MongoDB friendly format ready to be inserted into the
+// database collection.
+
+// However note that this method has only been invoked once
+// and then the code below for the invocation has been
+// commented out as the normal approach is to have the data
+// flow through the body of the request from the frontend
 const topicsArray = require("./utils/topicsArray");
 
 // The 'dotenv' library has already been required/imported
@@ -79,7 +97,12 @@ exports.createTopic = function (req, res) {
         message:
           "You don't have permission to perform this action. Login with the correct username & password",
       });
-    } else if (!user.isAdmin) {
+    }
+
+    // We only allow an authenticated user with the right
+    // priviledges in this case 'isAdmin' priviledge to
+    // be able to add a new question or topic to the database
+    else if (!user.isAdmin) {
       res.status(401).send({
         error: true,
         message:
@@ -112,66 +135,97 @@ exports.createTopic = function (req, res) {
 };
 
 /* 
-    2. Adding a Multiple New Topics to the topics collection.
+    2. Adding Multiple New Topics to the topics collection.
     ------------------------------------------------------------
 */
 
 // Creating Multiple Questions in the database at once
 exports.createMultipleTopics = async function (req, res) {
-  // FIXME: REVISIT BELOW
-  // JUST RETURN THIS AND COMMENT OUT THE CODE FOR THE GOOGLE SHEET CALL AS THAT WON'T BE NEEDED CONTINUOSLY ITS A ONE TIME BUT KEEP THE UTIL CODE AS IT SHOWS WHAT I HAVE DONE
-  // Grab the questions Array from the body of the request
-  // const newQuestionsArray = req.body;
+  // We use the try-catch block here to ensure that any
+  // error that occurs at any stage in the code execution
+  // is being gracefully handled to prevent the server
+  // from crashing.
+  try {
+    // Grab the topics Array from the body of the request
+    const newTopicsArray = req.body;
 
-  // Call the method to retrieve the topics from the
-  // google sheet
-  const newTopicsArray = await topicsArray();
+    /**
+     * IMPORTANT NOTE:
+     */
+    // The below method has only been invoked once
+    // to pull the values from the Google Sheet and push to
+    // the database. It can be used for any future request that
+    // needs to pull data from a Google Sheet however in
+    // normal instances we expect data to come from the
+    // body of the request from the frontend as we grab
+    // it above in the 'newTopicsArray' variable from the
+    // body of the request
 
-  console.log("NEW TOPICS ARRAY", newTopicsArray);
+    // The code below is therefore commented out to avoid
+    // duplicating the process of adding the 173 topics
+    // again into MongoDB database
 
-  // Grab the auth from the header and get the token
-  const authHeader = req.headers["authorization"];
-  const authToken = authHeader.split(" ")[1];
+    // Call the method to retrieve the topics from the
+    // google sheet
 
-  // Calling the jwt.verify method to verify the Identity of
-  // Authenticated user by verifying the authToken
+    // CODE:
+    // const newTopicsArray = await topicsArray();
 
-  jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
-    if (err) {
-      console.log(err);
-      res.status(401).send({
-        error: true,
-        message:
-          "You don't have permission to perform this action. Login with the correct username & password",
-      });
-    } else if (!user.isAdmin) {
-      res.status(401).send({
-        error: true,
-        message:
-          "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
-      });
-    } else {
-      // Create and Save a new Topics using the TopicModel
-      // constructor imported and passing in the Array of Objects
-      // received from the body of the request.
+    // Grab the auth from the header and get the token
+    const authHeader = req.headers["authorization"];
+    const authToken = authHeader.split(" ")[1];
 
-      // Call the insertMany() method from the contructor
+    // Calling the jwt.verify method to verify the Identity of
+    // Authenticated user by verifying the authToken
 
-      console.log("WERE IN!!!!!!!");
+    jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
+      if (err) {
+        console.log(err);
+        res.status(401).send({
+          error: true,
+          message:
+            "You don't have permission to perform this action. Login with the correct username & password",
+        });
+      }
 
-      Topic.insertMany(newTopicsArray, function (err, topicDocs) {
-        if (err) {
-          console.log(err);
-          res.status(500).send({
-            message:
-              "Oops! There is an error in adding multiple Topics to the database",
-          });
-        } else {
-          console.log("Yay! Array of New Topics added to database!", topicDocs);
-          // Send back the Question documents inserted
-          res.send(topicDocs);
-        }
-      });
-    }
-  });
+      // We only allow an authenticated user with the right
+      // priviledges in this case 'isAdmin' priviledge to
+      // be able to add a new question or topic to the database
+      else if (!user.isAdmin) {
+        res.status(401).send({
+          error: true,
+          message:
+            "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
+        });
+      } else {
+        // Create and Save a new Topics using the TopicModel
+        // constructor imported and passing in the Array of Objects
+        // received from the body of the request.
+
+        // Call the insertMany() method from the contructor
+
+        Topic.insertMany(newTopicsArray, function (err, topicsDocs) {
+          if (err) {
+            console.log(err);
+            res.status(500).send({
+              message:
+                "Oops! There is an error in adding multiple Topics to the database",
+            });
+          } else {
+            console.log(
+              "Yay! Array of New Topics added to database!",
+              topicsDocs
+            );
+            // Send back the Topics documents inserted
+            res.send(topicsDocs);
+          }
+        });
+      }
+    });
+  } catch (err) {
+    console.error("Error in adding documents to the database");
+    res.status(500).send({
+      message: "Oops! There is an error in adding documents to the database",
+    });
+  }
 };

@@ -1,53 +1,69 @@
 /**
- * TODO: REVISIT THIS
+ *
  * QUESTION CONTROLLER
  *
- * Here we define all the CRUD operations operations in the
+ * The Software Development Architecture employed here is
+ * the MVC (Model, View, Controller).
+ *
+ * This is the Question Controller which defines all the
+ * methods and functions to manage all the requests for
+ * the 'questions' collection in MongoDB database and which
+ * handles all actions when the respective end-points are hit
+ * including security and ensuring the appropriate authenticated
+ * user accesses only the authorized resources
+ *
+ * Here we define all the CRUD operations in the
  * callback functions that will be called when the route
  * end-points are hit by a request.
  *
  * These functions are stored in variables and exported to
  * be used in the routes directory (we have put them together
- * in one index.js file for simplicity and maintanability of code)
+ * in one index.js file for simplicity and maintanability of
+ * the code)
  *
  * These methods defined here as controllers ultimately call
  * the various mongoose methods for constructing and querying
  * the data in the MongoDB database through the documents which
  * are instances of models.
  *
+ * This is why we import the Model constructors here for both
+ * the Topic and Question model from the respective model files
+ *
  * Design & Architecture of the Database:
  *
- * The database is designed such that there is one collection
- * that will store User documents that contain all the user
- * information as well as the array of todos items.
+ * Refer to the question.model file for detailed documentation
+ * on the structure of the individual documents under the
+ * 'questions' collection inside the MongoDB database.
  *
- * Quering the database is therefore done through finding
- * documents that relate to the authenticated user and only
- * returning that single document, or where the client has
- * made a request to edit or update that document.
+ * The overall architecture of the collection is such that
+ * all questions have a separate document with the questionNumber
+ * field and the annotations field being an array of strings for
+ * all the annotations
+ *
+ *
  *
  * Using Bcrypt to hash passwords saved in the Database:
  *
- * We make use of the bcrypt library whic is a popular password
+ * We make use of the bcrypt library which is a popular password
  * hashing library to hash the passwords before we store them
  * in the database. This is a key security feature since it
  * ensures that the user data is safe and sound even in the
  * unfortunate event of the database being hacked.
  *
- * When the user signs in, the bcrypt.compare() method is
- * used to compare the password entered by the user in the
- * frontend and hashed password in the database. Only after
- * the user this process is successful that the authToken
- * is generated and the user is allowed to sign in the
- * application
+ * Refer to the user.model and user.contoller files for details
+ * on the authentication of the user
+ *
  *
  * UTILS
  *
  * The utils necessary for the application and being used in
- * the route methods are defined at the top of this file under
- * the 'UTILS' title below. The createNewID() method and the
- * createUserAuthToken() are defined to be used in the methods
- * that follow below
+ * the route methods below are defined in the 'utils' directory.
+ *
+ * The only utils that are useful here are the 'questionsArray'
+ * and 'topicsArray' utils which include code that pull data
+ * from the Google Sheet into an JSON format that is friendly
+ * to be pushed to MongoDB database in form of Objects and
+ * Arrays.
  *
  *
  *
@@ -116,7 +132,12 @@ exports.createQuestion = function (req, res) {
         message:
           "You don't have permission to perform this action. Login with the correct username & password",
       });
-    } else if (!user.isAdmin) {
+    }
+
+    // We only allow an authenticated user with the right
+    // priviledges in this case 'isAdmin' priviledge to
+    // be able to add a new question or topic to the database
+    else if (!user.isAdmin) {
       res.status(401).send({
         error: true,
         message:
@@ -125,7 +146,7 @@ exports.createQuestion = function (req, res) {
     } else {
       // Create and Save a new Question using the QuestionModel
       // constructor and passing in the Object received from the
-      // body of the request.
+      // body of the request
       let questionModel = new Question({
         ...newQuestion,
       });
@@ -167,14 +188,12 @@ exports.createMultipleQuestions = async function (req, res) {
     const newQuestionsArray = req.body;
 
     /**
-     *
      * IMPORTANT NOTE:
-     *
-     **/
+     */
 
     // The below method has only been invoked once
     // to pull the values from the Google Sheet and push to
-    // thedatabase. It can be used for any future request that
+    // the database. It can be used for any future request that
     // needs to pull data from a Google Sheet however in
     // normal instances we expect data to come from the
     // body of the request from the frontend as we grab
