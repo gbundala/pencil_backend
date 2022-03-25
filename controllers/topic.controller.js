@@ -1,6 +1,6 @@
 /**
  *
- * TODO: REVISIT THIS
+ *
  *
  * TOPIC CONTROLLER
  *
@@ -162,7 +162,7 @@ exports.createMultipleTopics = async function (req, res) {
     // body of the request
 
     // The code below is therefore commented out to avoid
-    // duplicating the process of adding the 173 topics
+    // duplicating the process of adding the 179 topics
     // again into MongoDB database
 
     // Call the method to retrieve the topics from the

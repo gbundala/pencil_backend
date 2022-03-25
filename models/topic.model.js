@@ -68,21 +68,36 @@
  * also ensure that the frontend is properly coded to collect
  * sufficient data necessary according to the schema.
  *
- * TODO: Add details below and include this in the question model
- * as well
- * TODO: Speak of the index prop added to topicName below
  *
  * INDEXES
+ *
  * Added index to the topicName to enhance the efficiency of the
- * search for the topics documents
+ * search for the topics documents. It is necessary to add an
+ * index for the topicName property here as it is being queried
+ * in the question.controller before the question documents are
+ * queried. The topic is queried to return the list of all
+ * sub-topics that relate to that particular topic before it
+ * is searched in the 'questions' collection to return the
+ * the list question Numbers that meet the filter criteria (that
+ * hasd been annotated with the topic and sub-topics returned)
  *
  * https://mongoosejs.com/docs/guide.html#indexes
  *
+ * This has been done through adding the index flag to be true,
+ * under the annotations field in the mongoose model below.
  * When the application starts up, Mongoose automatically calls
  * createIndex() for each defined index in the schema
  *
  * https://docs.mongodb.com/manual/indexes/
- * Indexes support the efficient execution of queries in MongoDB
+ * Indexes support the efficient execution of queries in MongoDB.
+ * This enables MongoDB to limit the number of documents to check
+ * in a collection instead of doing a collection wide search
+ * to see the documents that meet the filter criteria
+ *
+ * This is evidenced from this application as documented in the
+ * controller file, the number of documents inspected was reduced
+ * to only 5 from more than 150 documents in the collection when
+ * we don't have an index.
  *
  */
 

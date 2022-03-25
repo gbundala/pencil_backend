@@ -47,6 +47,32 @@
  * Documents compare and empty field to a value (this is because
  * some questions don't have all the five annotations)
  *
+ *
+ * INDEXES
+ *
+ * We have added index to the annotations field in the documents
+ * to enhance the efficiency of the queries made based on the
+ * 'annotations' filter.
+ *
+ * This has been done through adding the index flag to be true,
+ * under the annotations field in the mongoose model below.
+ * When the application starts up, Mongoose automatically calls
+ * createIndex() for each defined index in the
+ *
+ * https://mongoosejs.com/docs/guide.html#indexes
+ * https://docs.mongodb.com/manual/indexes/
+ *
+ * Indexes support the efficient execution of queries in MongoDB.
+ * This enables MongoDB to limit the number of documents to check
+ * in a collection instead of doing a collection wide search
+ * to see the documents that meet the filter criteria
+ *
+ * This is evidenced from this application as documented in the
+ * controller file, the number of documents inspected was reduced
+ * to only 5 from more than 150 documents in the collection when
+ * we don't have an index.
+ *
+ *
  */
 
 // Import the mongoose library
