@@ -1,15 +1,14 @@
 /**
  *
- * TODO: REVIEW THIS ENTIRE FILE (NOT YET REVIEWED)
  *
  * USER MODEL
  *
  *
  *
- * Here we define the schema to work with Mongoose.
+ * Here we define the schema to work with Mongoose and MongoDB.
  * We defined all the fields that will go into the documents
  * that will be created, updated and pulled from the MongoDB
- * database.
+ * database for our users.
  *
  * In the schema definition below, we include the type that
  * each field is expected to carry but also define whether
@@ -17,6 +16,7 @@
  * the default value of the field
  *
  * USE OF BCRYPT FOR PASSWORDS:
+ *
  * For passwords we have used the bcrpt library to hash the
  * passwords stored in the database to enhance security.
  * More details on this and the implementation details in
@@ -32,16 +32,17 @@ const mongoose = require("mongoose");
 
 // The isAdmin user designation is used to define whether a user
 // has admin priviledges which in our case in the current simple
-// nature of the application, the only the admin has the right
+// nature of the application, only an admin has the right
 // to create new questions and topics into the database.
 
 // Also included other designations in the schema: isTutor,
 // isSchoolTeacher, isStudent in order to provide for different
-// roles and access depending on the designation. This is however
-// not so much relevant in the current task, however it is
-// appreciated that this sort of designition for the user objects
-// would be really useful to the fully fledged
-// production application
+// roles and accesses depending on the designation.
+// This is however not so much relevant in the current task,
+// however it is appreciated that this sort of designation for
+// the user objects would be really useful to the fully fledged
+// production application.
+
 let UserSchema = mongoose.Schema({
   username: {
     type: String,
@@ -85,13 +86,13 @@ let UserSchema = mongoose.Schema({
   },
 });
 
-// We create the User model by calling the model()
-// method from the
-// mongoose library and specify the name of the model "User" as
-// well as the Schema Object "UserSchema" defined above
+// We create the User model by calling the model() method from
+// the mongoose library and specify the name of the model "User"
+// as well as the Schema Object "UserSchema" defined above
 // Documents created in the MongoDB database would represent
 // instances of this model and any action to the documents
-// are handled by this model
-// In essence the model created below is a special constructor
-// that is compiled based on the above defined schema
+// are handled by this model. In essence the model created below
+// is a special constructor that is compiled based on the above
+// defined Schema.
+
 module.exports = mongoose.model("User", UserSchema);
