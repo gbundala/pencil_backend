@@ -16,6 +16,8 @@ If you need to see this application in action in development mode you can downlo
 
 You may also clone the repo from https://github.com/gbundala/pencil_backend in your local environment or download the zip file from Github and follow the steps above.
 
+If you need to see the application in action in Production, hosted on Heroku: https://pencil-backend-gb.herokuapp.com/
+
 ## Backend part of the application
 
 This RESTful API is created with Express.js, a popular Node.js library that simplifies the development of api with JavaScript.
@@ -38,6 +40,13 @@ being stored in the database.
 Scripts, libraries and dependencies used in the application as stored in the `package.json` file in the root directory, such as `npm test` and `npm start` scripts.
 
 ## Hosted on Heroku and Testing with Postman
+
+https://pencil-backend-gb.herokuapp.com/
+
+The image below shows how to make a requiest through the console
+and attach the token in the header of the request while in production
+
+![Fetching data in Production](images/fetch_in_production.jpg)
 
 ## Requirements of the Task
 
