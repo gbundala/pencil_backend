@@ -136,6 +136,11 @@ let TopicSchema = mongoose.Schema({
     type: [Number],
     required: true,
   },
+  schemaVersion: {
+    type: Number,
+    required: false,
+    default: 2,
+  },
 });
 
 // We create the Topic Model by calling the model()
