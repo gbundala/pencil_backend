@@ -44,6 +44,13 @@ apiRouter.post("/addTopic", topic.createTopic);
 // questions to the database
 apiRouter.post("/addManyTopics", topic.createMultipleTopics);
 
+// 3. UPDATE Request to update all Topics docs to include
+// and array of questions relating to both the topic & subtopics
+apiRouter.put(
+  "/updateTopicsWithQuestions",
+  topic.updateTopicsToIncludeQuestions
+);
+
 // USER ROUTERS
 
 // 1. POST Request to add a new User to the Users collection

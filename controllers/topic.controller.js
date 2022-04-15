@@ -48,6 +48,9 @@
 // Import the Topic model from the model file
 const Topic = require("../models/topic.model");
 
+// Import the Question model from the model file
+const Question = require("../models/question.model");
+
 // Import the jsonwebtoken library
 const jwt = require("jsonwebtoken");
 
@@ -226,6 +229,101 @@ exports.createMultipleTopics = async function (req, res) {
     console.error("Error in adding documents to the database");
     res.status(500).send({
       message: "Oops! There is an error in adding documents to the database",
+    });
+  }
+};
+
+/* 
+    3. Updating All Topic Docs to include a field for the Array of Questions
+     that relate to both the Topic and its sub-topics
+    ------------------------------------------------------------
+*/
+
+// TODO: Find All the topics and bring back and array of the topic and its sub-topics (similar to what we have done in the filter for fetching for the questions) and use this array to get an array of all the question numbers from the Questions collection and insert this array as the value of the 'questions' field for each of these Topic Docs
+
+// Updating All Topic Docs to include an array of questions
+// relating to both the 'topic' itself and its corresponding
+// 'sub-topics'
+exports.updateTopicsToIncludeQuestions = async function (req, res) {
+  // We use the try-catch block here to ensure that any
+  // error that occurs at any stage in the code execution
+  // is being gracefully handled to prevent the server
+  // from crashing.
+  try {
+    // Grab the auth from the header and get the token
+    const authHeader = req.headers["authorization"];
+    const authToken = authHeader.split(" ")[1];
+
+    // Calling the jwt.verify method to verify the Identity of
+    // Authenticated user by verifying the authToken
+
+    jwt.verify(authToken, JWT_SECRET_KEY, function (err, user) {
+      if (err) {
+        console.log(err);
+        res.status(401).send({
+          error: true,
+          message:
+            "You don't have permission to perform this action. Login with the correct username & password",
+        });
+      }
+
+      // We only allow an authenticated user with the right
+      // priviledges in this case 'isAdmin' priviledge to
+      // be able to update a topic in the database
+      else if (!user.isAdmin) {
+        res.status(401).send({
+          error: true,
+          message:
+            "You don't have the right priviledges to add questions or topics. Login with the correct username & password",
+        });
+      } else {
+        // Followed the steps below in the code implementation:
+
+        // 1. Find All Topics in the 'Topics' collection
+
+        // 2. For each of the topics, return an array that
+        // contains the topic itself and its corresponding
+        // sub-topics
+
+        // 3. Make the query to the 'questions' collection to
+        // return all the question numbers that has at least
+        // one of the topics/sub-topics in its annotations
+        // array. Here we make use of the $in MongoDB operator
+
+        Topic.find()
+          .cursor()
+          .eachAsync(async (doc) => {
+            // console.log("Document ID", doc.topicName);
+            const queryArray = [doc.topicName, ...doc.subTopics];
+
+            // let questionDocs = [];
+
+            Question.find(
+              {
+                annotations: { $in: queryArray },
+              },
+              function (err, questionDocuments) {
+                // questionDocs.push(questionDocuments.questionNumber);
+
+                const questionNumbers = questionDocuments.map((doc) => {
+                  return doc.questionNumber;
+                });
+
+                console.log(questionNumbers);
+              }
+            );
+
+            // REMOVE: const questionNumbers = questionDocs.questionNumber
+            // console.log(questionDocs);
+            // res.send(questionDocs);
+          });
+      }
+    });
+  } catch (err) {
+    console.error("Error in updating documents to the database", err);
+
+    res.status(500).send({
+      message: "Oops! There is an error in updating documents to the database",
     });
   }
 };

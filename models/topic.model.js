@@ -109,6 +109,9 @@ const mongoose = require("mongoose");
 // relating to the structure and architecture of the 'topics'
 // collection in the database
 
+// The questions field contains the value of an array for all
+// the question numbers that relate to the topic and sub-topics
+
 let TopicSchema = mongoose.Schema({
   topicName: {
     type: String,
@@ -128,6 +131,10 @@ let TopicSchema = mongoose.Schema({
     type: [String],
     required: false,
     default: [],
+  },
+  questions: {
+    type: [Number],
+    required: true,
   },
 });
 
